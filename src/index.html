@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Document</title>
+  <style>
+    * {
+      padding: 0;
+      margin: 0;
+    }
+    body {
+      width: 100vw;
+      height: 100vh;
+      background-color: #f1f1f1;
+    }
+    .canv-box {
+      width: 800px;
+      height: 800px;
+      background-color: #fff;
+    }
+    .container {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+    }
+    .control {
+      display: flex;
+    }
+    .btn {
+      height: 30px;
+      padding: 0 10px;
+      background-color: #ff9933;
+      cursor: pointer;
+      margin: 0 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="control">
+      <div class="btn" id="rerenderDraw">重绘</div>
+      <div class="btn" id="drawCircle">圆形</div>
+      <div class="btn" id="drawRect">矩形</div>
+      <div class="btn" id="drawTriangle">三角形</div>
+      <div class="btn" id="selectGroup">选中组</div>
+    </div>
+    <div class="canv-box">
+      <canvas id="canv"></canvas>
+    </div>
+  </div>
+</body>
+</html>
