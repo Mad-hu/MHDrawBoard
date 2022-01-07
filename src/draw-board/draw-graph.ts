@@ -27,16 +27,17 @@ export class DrowGraph {
      */
     createText(text: string = '', options?: fabric.TextOptions) {
         options = Object.assign({ left: 100, top: 100 }, options);
-        return new fabric.Text(text, {
-            left: 100,
-            top: 100,
-            width: 150,
+        const textObj = new fabric.Textbox(text, {
             fontSize: 14,
             borderColor: "#2c2c2c",
             fill: '#E34F51',
-            hasControls: false,
+            hasControls: true,
             ...options
         });
+        textObj.on('mouse:down', ()=> {
+            textObj.exitEditing();
+        });
+        return textObj;
     }
 
     /**
@@ -54,6 +55,8 @@ export class DrowGraph {
             x2: 1,
             y2: 1,
             fill: 'red',
+            stroke: 'red',
+            strokeWidth: 2,
             ...options
         });
     }

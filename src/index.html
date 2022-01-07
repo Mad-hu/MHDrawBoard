@@ -1,3 +1,11 @@
+<!--
+ * @Author: Yandong Hu
+ * @github: https://github.com/Mad-hu
+ * @Date: 2022-01-02 11:38:49
+ * @LastEditTime: 2022-01-07 16:41:54
+ * @LastEditors: Yandong Hu
+ * @Description: 
+-->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -43,11 +51,18 @@
 <body>
   <div class="container">
     <div class="control">
-      <div class="btn" id="rerenderDraw">重绘</div>
+      <chrome-picker>123</chrome-picker>
+      <div class="btn" id="mouseDraw">鼠标</div>
+      <div class="btn" id="freeDraw">自由绘</div>
       <div class="btn" id="drawCircle">圆形</div>
       <div class="btn" id="drawRect">矩形</div>
       <div class="btn" id="drawTriangle">三角形</div>
-      <div class="btn" id="selectGroup">选中组</div>
+      <div class="btn" id="drawLine">直线</div>
+      <div class="btn" id="drawText">文字</div>
+      <div class="btn" id="clear">清空</div>
+      <div class="btn" id="undo">撤销</div>
+      <div class="btn" id="redo">重做</div>
+      <div class="btn" id="deleteTargetGraph">删除指定图形</div>
     </div>
     <div class="canv-box">
       <canvas id="canv"></canvas>

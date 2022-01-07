@@ -9,14 +9,15 @@ import { v4 as uuidv4 } from 'uuid';
  * @class DrowBoard
  */
 export class DrowBoard {
-    // 画板是否可以画
+    // 画板是否正在画
     drawing = false;
-    enableDraw = true;
+    // 画板是否被禁用
+    enableDraw = false;
     drawBoard: fabric.Canvas;
     drawGraph: DrowGraph;
-    currentDrawGraph: fabric.Text | fabric.Triangle | fabric.Rect | fabric.Line | fabric.Ellipse | fabric.Circle;
+    currentDrawGraph: fabric.Textbox | fabric.Triangle | fabric.Rect | fabric.Line | fabric.Ellipse | fabric.Circle | null;
     currentDrawGraphType: DrawGraphType;
-    drawGraphArr: Array<fabric.Text | fabric.Triangle | fabric.Rect | fabric.Line | fabric.Ellipse | fabric.Circle> = [];
+    drawGraphArr: Array<fabric.Textbox | fabric.Triangle | fabric.Rect | fabric.Line | fabric.Ellipse | fabric.Circle> = [];
 
     mouseFrom = { x: 0, y: 0 };
     mouseTo = { x: 0, y: 0 };
@@ -31,6 +32,7 @@ export class DrowBoard {
     LineWeight: number = 2;
     color: string = 'red';
 
+    deleteTargetGraphState = false;
     /**
      * Creates an instance of DrowBoard.
      * @param {string} id canvas id.
@@ -41,65 +43,157 @@ export class DrowBoard {
             width: this.boardW,
             height: this.boardH,
             skipTargetFind: false,
+            selectable: false,
+            // selection: false
         }, options);
         this.drawBoard = new fabric.Canvas(element, options);
         this.drawGraph = new DrowGraph();
+        // 添加画板间监听
+        this.addBoardEvent();
         console.log('创建画板成功');
     }
+    /**
+     * 设置是否可以自由画画
+     *
+     * @param {boolean} flag true 可以  false 不可以
+     * @memberof DrowBoard
+     */
     setDrawingMode(flag: boolean) {
         this.drawBoard.isDrawingMode = flag;
     }
+    setFreeDraw(flag: boolean) {
+        this.setDrawingMode(flag);
+        this.drawBoard.freeDrawingBrush.color = this.color;
+        this.drawBoard.freeDrawingBrush.width = this.LineWeight;
+        
+    }
     setEnableDraw(flag: boolean) {
         this.enableDraw = flag;
-        if(flag) {
-            this.addBoardEvent();
-        }else {
-            this.removeBoardEvent();
-        }
     }
 
+    /**
+     * add draw board event
+     *
+     * @memberof DrowBoard
+     */
     addBoardEvent() {
-        // this.removeBoardEvent();
         this.drawBoard.on('mouse:down', this.boardMouseDown.bind(this));
         this.drawBoard.on('mouse:up', this.boardMouseUp.bind(this));
         this.drawBoard.on('mouse:move', this.boardMouseMove.bind(this));
+        // 解决边缘拖动，鼠标up不生效
+        this.drawBoard.on('mouse:out', this.boardMouseUp.bind(this));
+        this.drawBoard.on("selection:created",  this.boardSelectionCreated.bind(this));
         console.log('创建监听成功');
     }
+    /**
+     * remove draw board event
+     *
+     * @memberof DrowBoard
+     */
     removeBoardEvent() {
         this.drawBoard.removeListeners();
+        console.log('清空画板监听');
+    }
+    /**
+     * 画板选择并创建
+     *
+     * @param {fabric.IEvent<MouseEvent>} e
+     * @memberof DrowBoard
+     */
+    boardSelectionCreated(e: fabric.IEvent<MouseEvent>) {
+        console.log('selection:created');
+        // 点击删除
+        if(this.deleteTargetGraphState) {
+            this.drawBoard.remove(e.target);
+            // 清楚选中框
+            this.drawBoard.discardActiveObject(); 
+        }
     }
     boardMouseDown(options: fabric.IEvent<MouseEvent>) {
-        
-        const { offsetX, offsetY, target } = options.e;
-        console.log('mouse:down1', offsetX, offsetY, target, this.drawBoard.isDrawingMode);
+        const { offsetX, offsetY } = options.e;
+        const target = <HTMLCanvasElement>options.e.target;
         this.mouseFrom = { x: offsetX, y: offsetY };
-        this.setDrawGraph(this.currentDrawGraphType);
+        console.log('开始点击:', offsetX, offsetY, target);
+        this.drawText();
+        if (this.enableDraw == false) {
+            return;
+        }
+        if (target.style.cursor != 'default') {
+            return;
+        }
         this.drawing = true;
+    }
+    drawText() {
+        if(this.currentDrawGraphType == DrawGraphType.Text) {
+            // 没有创建图形，先创建图形，在改变图形
+            if (!this.currentDrawGraph) {
+                this.setDrawGraph(this.currentDrawGraphType);
+            } else {
+                (<fabric.Textbox>this.currentDrawGraph).exitEditing();
+                this.currentDrawGraph = null;
+                this.setDrawGraph(this.currentDrawGraphType);
+            }
+            this.setCurrentDrawGraphOptions();
+            // 图形通过set改变形状以后，选中拉伸的框，不会随着大小变化，这里移除再加入以后会解决此问题
+            this.drawBoard.remove(this.currentDrawGraph);
+            this.drawBoard.add(this.currentDrawGraph);
+        }
     }
 
     boardMouseUp(options: fabric.IEvent<MouseEvent>) {
-        const { offsetX, offsetY, target } = options.e;
-        console.log('mouse:up', offsetX, offsetY);
-        this.mouseTo = { x: offsetX, y: offsetY };
-        this.drawing = false;
-        this.setdrawGraphArr();
-    }
-    boardMouseMove(options: fabric.IEvent<MouseEvent>) {
-        if(!this.drawing) {
-            return;
-        }
-        
         const { offsetX, offsetY } = options.e;
         const target = <HTMLCanvasElement>options.e.target;
-        if(['crosshair','n-resize','w-resize','s-resize','e-resize','se-resize','ne-resize', 'sw-resize','nw-resize','move'].includes(target.style.cursor)) {
-          return;
+        if (this.enableDraw == false) {
+            return;
         }
-        console.log('mouse:Move', offsetX, offsetY);
+        if (target.style.cursor != 'default') {
+            return;
+        }
+        if(!this.currentDrawGraph) {
+            return;
+        }
         this.mouseTo = { x: offsetX, y: offsetY };
-        this.setCurrentDrawGraphOptions();
-    }
-    boardMouseLeave() {
+        this.drawing = false;
+        
+        // 添加到画板内容列表
+        this.setdrawGraphArr();
+        if(this.currentDrawGraphType == DrawGraphType.Text) {
+            return;
+        }
 
+        // 图形通过set改变形状以后，选中拉伸的框，不会随着大小变化，这里移除再加入以后会解决此问题
+        this.drawBoard.remove(this.currentDrawGraph);
+        this.drawBoard.add(this.currentDrawGraph);
+
+        
+        // 抬起的时候，清理当前图形
+        this.currentDrawGraph = null;
+    }
+    boardMouseMove(options: fabric.IEvent<MouseEvent>) {
+        if (!this.drawing) {
+            return;
+        }
+        if(this.deleteTargetGraphState) {
+            return;
+        }
+        const { offsetX, offsetY } = options.e;
+        const target = <HTMLCanvasElement>options.e.target;
+        if (this.enableDraw == false) {
+            return;
+        }
+        if (target.style.cursor != 'default') {
+            return;
+        }
+        if(this.currentDrawGraphType == DrawGraphType.Text) {
+            return;
+        }
+
+        this.mouseTo = { x: offsetX, y: offsetY };
+        // 没有创建图形，先创建图形，在改变图形
+        if (!this.currentDrawGraph) {
+            this.setDrawGraph(this.currentDrawGraphType);
+        }
+        this.setCurrentDrawGraphOptions();
     }
 
     /**
@@ -136,14 +230,15 @@ export class DrowBoard {
         this.drawGraphArr.push(this.currentDrawGraph);
     }
     setRectangleOptions() {
-        const rect =  <fabric.Rect>this.currentDrawGraph;
+        const rect = <fabric.Rect>this.currentDrawGraph;
         const left = this.mouseFrom.x;
         const top = this.mouseFrom.y;
-        const bounds = {left: left, top: top, width: this.mouseTo.x - left, height: this.mouseTo.y - top};
+        const bounds = { left: left, top: top, width: this.mouseTo.x - left, height: this.mouseTo.y - top };
         rect.set(bounds);
+        this.drawBoard.renderAll();
     }
     setCircleOptions() {
-        const circle =  <fabric.Circle>this.currentDrawGraph;
+        const circle = <fabric.Circle>this.currentDrawGraph;
         const left = this.mouseFrom.x;
         const top = this.mouseFrom.y;
         const radius = (this.mouseTo.x - left) / 2 - 2;
@@ -152,7 +247,6 @@ export class DrowBoard {
             top: top,
             radius: radius < 0 ? 0 : radius,
         }
-        
         circle.set(bounds);
         this.drawBoard.renderAll();
     }
@@ -160,23 +254,51 @@ export class DrowBoard {
 
     }
     setLineOptions() {
-
+        const line = <fabric.Line>this.currentDrawGraph;
+        line.set({
+            x1: this.mouseFrom.x,
+            y1: this.mouseFrom.y,
+            x2: this.mouseTo.x,
+            y2: this.mouseTo.y
+        })
+        this.drawBoard.renderAll();
     }
     setTriangleOptions() {
-
+        const triangle = <fabric.Triangle>this.currentDrawGraph;
+        let left = this.mouseFrom.x;
+        let top = this.mouseFrom.y;
+        let height = this.mouseTo.y - this.mouseFrom.y;
+        let width = this.mouseTo.x - this.mouseFrom.x;
+        const bounds = {
+            left: left,
+            top: top,
+            width : width < 0? 1: width, 
+            height : height < 0? 1: height,
+        }
+        triangle.set(bounds);
+        this.drawBoard.renderAll();
     }
     setTextOptions() {
-
+        const text = <fabric.Textbox>this.currentDrawGraph;
+        const bounds = {
+            left: this.mouseFrom.x,
+            top: this.mouseFrom.y,
+            fontSize: 18,
+            borderColor: "#2c2c2c",
+          }
+        text.set(bounds);
+        text.enterEditing();
+        text.hiddenTextarea.focus();
+        this.drawBoard.renderAll();
     }
 
     getBoard() {
         return this.drawBoard;
     }
     setCurrentDrawGraphType(drawGraphType: DrawGraphType) {
-        // 添加画板间监听
-        this.addBoardEvent();
         // 设置当前绘制图形类型
         this.currentDrawGraphType = drawGraphType;
+        console.log('设置画板：', drawGraphType);
     }
 
     /**
@@ -207,14 +329,47 @@ export class DrowBoard {
                 this.currentDrawGraph = this.drawGraph.createText();
                 break;
             case DrawGraphType.Mouse:
-                // 屏蔽画板控制，回归一些状态
-                // 关闭监听
-                this.removeBoardEvent();
                 break;
         }
         this.drawBoard.add(this.currentDrawGraph);
     }
+
+    /**
+     * 关闭当前模式得功能。
+     *
+     * @param {string} type
+     * @memberof DrowBoard
+     */
+    disableCurrentModeFunc(type: string) {
+        switch(type) {
+            case 'deleteTargetGraph':
+                this.deleteTargetGraphState = false;
+                break;
+            case 'text':
+                this.currentDrawGraph = null;
+                this.currentDrawGraphType = DrawGraphType.Mouse;
+        }
+    }
     setFont() {
 
+    }
+    clear() {
+        this.drawBoard.clear();
+        this.drawGraphArr = [];
+    }
+    undo() {
+        if(this.drawBoard._objects.length > 0){
+            this.drawGraphArr.push(this.drawBoard._objects.pop());
+            this.drawBoard.renderAll();
+        }
+    }
+    redo() {
+        if(this.drawGraphArr.length > 0){
+            this.drawBoard.add(this.drawGraphArr.pop());
+            this.drawBoard.renderAll();
+        }
+    }
+    setDeleteTargetGraphState(flag?: boolean) {
+        this.deleteTargetGraphState = flag == undefined? !this.deleteTargetGraphState: flag;
     }
 }
