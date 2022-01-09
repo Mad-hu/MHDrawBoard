@@ -295,6 +295,16 @@ export class DrowBoard {
     getBoard() {
         return this.drawBoard;
     }
+    setBounds(bounds: {width: number, height: number}) {
+        this.drawBoard.setWidth(bounds.width);
+        this.drawBoard.setHeight(bounds.height);
+    }
+    setBackgroundColor(backgroundColor: string | fabric.Pattern | fabric.Gradient, callback: Function = null) {
+        this.drawBoard.setBackgroundColor(backgroundColor, callback);
+    }
+    setBackgroundImage(image: string | fabric.Image, callback: Function, options?: fabric.IImageOptions) {
+        this.drawBoard.setBackgroundImage(image, callback, options);
+    }
     setCurrentDrawGraphType(drawGraphType: DrawGraphType) {
         // 设置当前绘制图形类型
         this.currentDrawGraphType = drawGraphType;

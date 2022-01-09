@@ -13,7 +13,13 @@ let drawBoard: DrowBoard;
 
 
 function drawCanvas(id: string) {
+  const canvasObj = document.getElementById(id);
   drawBoard = new DrowBoard(id, {width: 800, height: 800});
+  window.addEventListener('resize', ()=> {
+    const width = canvasObj.parentElement.parentElement.offsetWidth;
+    const height = canvasObj.parentElement.parentElement.offsetHeight;
+    drawBoard.setBounds({width, height});
+  })
 }
 
 function handleUI(){

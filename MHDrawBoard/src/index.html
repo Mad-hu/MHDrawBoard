@@ -1,0 +1,86 @@
+<!--
+ * @Author: Yandong Hu
+ * @github: https://github.com/Mad-hu
+ * @Date: 2022-01-02 11:38:49
+ * @LastEditTime: 2022-01-07 16:41:54
+ * @LastEditors: Yandong Hu
+ * @Description: 
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Document</title>
+  <style>
+    * {
+      padding: 0;
+      margin: 0;
+    }
+    body {
+      width: 100vw;
+      height: 100vh;
+      background-color: #f1f1f1;
+    }
+    .canv-box {
+      background-color: #fff;
+      flex-grow: 1;
+    }
+    .container {
+      width: 100%;
+      height: 100%;
+      display: flex;
+    }
+    .control {
+      display: flex;
+    }
+    .btn {
+      height: 30px;
+      padding: 0px 10px;
+      background-color: #409eff;
+      margin: 0 10px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      border-radius: 6px;
+      cursor: pointer;
+      color: #fff;
+      font-size: 13px;
+    }
+    .left {
+      width: 300px;
+      height: 100vh;
+      background: #e1e1e1;
+    }
+    .right {
+      display: flex;
+      flex-direction: column;
+      flex-grow: 1;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="left"></div>
+    <div class="right">
+      <div class="control">
+        <div class="btn" id="mouseDraw">鼠标</div>
+        <div class="btn" id="freeDraw">自由绘</div>
+        <div class="btn" id="drawCircle">圆形</div>
+        <div class="btn" id="drawRect">矩形</div>
+        <div class="btn" id="drawTriangle">三角形</div>
+        <div class="btn" id="drawLine">直线</div>
+        <div class="btn" id="drawText">文字</div>
+        <div class="btn" id="clear">清空</div>
+        <div class="btn" id="undo">撤销</div>
+        <div class="btn" id="redo">重做</div>
+        <div class="btn" id="deleteTargetGraph">删除指定图形</div>
+      </div>
+      <div class="canv-box">
+        <canvas id="canv"></canvas>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
