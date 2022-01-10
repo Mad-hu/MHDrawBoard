@@ -62,7 +62,10 @@ export class DrowBoard {
         this.drawBoard.isDrawingMode = flag;
     }
     setFreeDraw(flag: boolean) {
+        this.cancleText();
         this.setDrawingMode(flag);
+        this.currentDrawGraphType  = DrawGraphType.Mouse;
+        this.currentDrawGraph = null;
         this.drawBoard.freeDrawingBrush.color = this.color;
         this.drawBoard.freeDrawingBrush.width = this.LineWeight;
         
@@ -137,6 +140,17 @@ export class DrowBoard {
             // 图形通过set改变形状以后，选中拉伸的框，不会随着大小变化，这里移除再加入以后会解决此问题
             this.drawBoard.remove(this.currentDrawGraph);
             this.drawBoard.add(this.currentDrawGraph);
+        }
+    }
+    cancleText() {
+        if(this.currentDrawGraphType == DrawGraphType.Text) {
+            // 没有创建图形，先创建图形，在改变图形
+            if (this.currentDrawGraph) {
+                console.log('清理画板文字');
+                (<fabric.Textbox>this.currentDrawGraph).exitEditing();
+                this.currentDrawGraph = null;
+            }
+            
         }
     }
 
@@ -233,7 +247,13 @@ export class DrowBoard {
         const rect = <fabric.Rect>this.currentDrawGraph;
         const left = this.mouseFrom.x;
         const top = this.mouseFrom.y;
-        const bounds = { left: left, top: top, width: this.mouseTo.x - left, height: this.mouseTo.y - top };
+        const bounds = { 
+            left: left, 
+            top: top, 
+            width: this.mouseTo.x - left, 
+            height: this.mouseTo.y - top,
+            stroke: this.color
+        };
         rect.set(bounds);
         this.drawBoard.renderAll();
     }
@@ -246,6 +266,7 @@ export class DrowBoard {
             left: left,
             top: top,
             radius: radius < 0 ? 0 : radius,
+            stroke: this.color
         }
         circle.set(bounds);
         this.drawBoard.renderAll();
@@ -259,7 +280,8 @@ export class DrowBoard {
             x1: this.mouseFrom.x,
             y1: this.mouseFrom.y,
             x2: this.mouseTo.x,
-            y2: this.mouseTo.y
+            y2: this.mouseTo.y,
+            stroke: this.color
         })
         this.drawBoard.renderAll();
     }
@@ -274,6 +296,7 @@ export class DrowBoard {
             top: top,
             width : width < 0? 1: width, 
             height : height < 0? 1: height,
+            stroke: this.color
         }
         triangle.set(bounds);
         this.drawBoard.renderAll();
@@ -285,6 +308,7 @@ export class DrowBoard {
             top: this.mouseFrom.y,
             fontSize: 18,
             borderColor: "#2c2c2c",
+            fill: this.color
           }
         text.set(bounds);
         text.enterEditing();
@@ -306,8 +330,10 @@ export class DrowBoard {
         this.drawBoard.setBackgroundImage(image, callback, options);
     }
     setCurrentDrawGraphType(drawGraphType: DrawGraphType) {
+        this.cancleText();
         // 设置当前绘制图形类型
         this.currentDrawGraphType = drawGraphType;
+        
         console.log('设置画板：', drawGraphType);
     }
 
@@ -363,23 +389,30 @@ export class DrowBoard {
     setFont() {
 
     }
+    setColor(color: string) {
+        this.color = color;
+    }
     clear() {
         this.drawBoard.clear();
         this.drawGraphArr = [];
+        this.cancleText();
     }
     undo() {
         if(this.drawBoard._objects.length > 0){
             this.drawGraphArr.push(this.drawBoard._objects.pop());
             this.drawBoard.renderAll();
         }
+        this.cancleText();
     }
     redo() {
         if(this.drawGraphArr.length > 0){
             this.drawBoard.add(this.drawGraphArr.pop());
             this.drawBoard.renderAll();
         }
+        this.cancleText();
     }
     setDeleteTargetGraphState(flag?: boolean) {
+        this.cancleText();
         this.deleteTargetGraphState = flag == undefined? !this.deleteTargetGraphState: flag;
     }
 }

@@ -19,11 +19,12 @@
 
 <script lang="ts">
 import { Options, Provide, Vue, Watch } from "vue-property-decorator";
+import { DrawBoardState } from "../../services/state.services";
 @Options({
   components: {},
 })
 export default class Home extends Vue {
-  currentColor = "";
+  drawBoardState = DrawBoardState;
   mounted() {
     jscolor.presets.default = {
       width: 201,
@@ -45,8 +46,9 @@ export default class Home extends Vue {
   unmounted() {}
   changeValue(e: InputEvent) {
     const colorPicker = <HTMLInputElement>e.target;
-    this.currentColor = colorPicker.value;
-    console.log(this.currentColor);
+
+    this.drawBoardState.color = colorPicker.value;
+    console.log(this.drawBoardState.color);
   }
 }
 </script>

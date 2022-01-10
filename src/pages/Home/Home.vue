@@ -44,11 +44,17 @@ import { Options, Provide, Vue, Watch } from "vue-property-decorator";
 import _ from "lodash";
 import { DrowBoard } from "../../../MHDrawBoard/src/draw-board/draw-board";
 import { DrawGraphType } from "../../../MHDrawBoard/src/draw-board/draw-graph";
+import { DrawBoardState } from "../../services/state.services";
 @Options({
   components: {},
 })
 export default class Home extends Vue {
   drawBoard!: DrowBoard;
+  drawBoardState = DrawBoardState;
+  @Watch('drawBoardState.color')
+  boardColorChange(newV: string, oldV: string) {
+    this.drawBoard.setColor(newV);
+  }
   mounted() {
     this.drawCanvas("canv");
   }
@@ -57,11 +63,11 @@ export default class Home extends Vue {
   drawCanvas(id: string) {
     const canvasObj = <HTMLCanvasElement>document.getElementById(id);
     this.drawBoard = new DrowBoard(id, { width: 800, height: 800 });
-    // window.addEventListener("resize", () => {
-    //   const width = canvasObj!.parentElement!.parentElement!.offsetWidth;
-    //   const height = canvasObj!.parentElement!.parentElement!.offsetHeight;
-    //   this.drawBoard.setBounds({ width, height });
-    // });
+    window.addEventListener("resize", () => {
+      const width = canvasObj!.parentElement!.parentElement!.offsetWidth;
+      const height = canvasObj!.parentElement!.parentElement!.offsetHeight;
+      this.drawBoard.setBounds({ width, height });
+    });
   }
 
   /**
