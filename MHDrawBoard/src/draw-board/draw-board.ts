@@ -60,6 +60,9 @@ export class DrowBoard {
      */
     setDrawingMode(flag: boolean) {
         this.drawBoard.isDrawingMode = flag;
+        if(this.deleteTargetGraphState) {
+            this.deleteTargetGraphState = false;
+        }
     }
     setFreeDraw(flag: boolean) {
         this.cancleText();
@@ -150,8 +153,8 @@ export class DrowBoard {
                 (<fabric.Textbox>this.currentDrawGraph).exitEditing();
                 this.currentDrawGraph = null;
             }
-            
         }
+        this.deleteTargetGraphState = false;
     }
 
     boardMouseUp(options: fabric.IEvent<MouseEvent>) {
