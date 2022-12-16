@@ -2,7 +2,7 @@
  * @Author: Yandong Hu
  * @github: https://github.com/Mad-hu
  * @Date: 2021-08-04 15:35:56
- * @LastEditTime: 2021-11-19 11:59:58
+ * @LastEditTime: 2022-02-09 17:34:37
  * @LastEditors: Yandong Hu
  * @Description:
 -->
@@ -21,7 +21,7 @@
         <div class="btn" @click="clearAction">清空</div>
         <div class="btn" @click="undoAction">撤销</div>
         <div class="btn" @click="redoAction">重做</div>
-        <div class="btn" @click="deleteTargetGraphAction">删除指定图形</div>
+        <div class="btn" @click="deleteTargetGraphAction">{{deleteState ?'停止删除': '删除指定图形'}}</div>
       </div>
     </div>
     <div class="main">
@@ -49,6 +49,8 @@ import { DrawGraphType } from "../../../MHDrawBoard/src/draw-board/draw-graph";
 })
 export default class Home extends Vue {
   drawBoard!: DrowBoard;
+
+  deleteState = false;
   mounted() {
     this.drawCanvas("canv");
   }
@@ -56,12 +58,15 @@ export default class Home extends Vue {
 
   drawCanvas(id: string) {
     const canvasObj = <HTMLCanvasElement>document.getElementById(id);
-    this.drawBoard = new DrowBoard(id, { width: 800, height: 800 });
-    // window.addEventListener("resize", () => {
-    //   const width = canvasObj!.parentElement!.parentElement!.offsetWidth;
-    //   const height = canvasObj!.parentElement!.parentElement!.offsetHeight;
-    //   this.drawBoard.setBounds({ width, height });
-    // });
+    const width = canvasObj!.parentElement!.parentElement!.offsetWidth;
+    const height = canvasObj!.parentElement!.parentElement!.offsetHeight;
+
+    this.drawBoard = new DrowBoard(id, { width: width, height: height });
+    window.addEventListener("resize", () => {
+      const width = canvasObj!.parentElement!.parentElement!.offsetWidth;
+      const height = canvasObj!.parentElement!.parentElement!.offsetHeight;
+      this.drawBoard.setBounds({ width, height });
+    });
   }
 
   /**
@@ -122,13 +127,16 @@ export default class Home extends Vue {
     this.drawBoard.clear();
   }
   undoAction() {
-    this.drawBoard.undo();
+    const type = this.drawBoard.undo();
+    console.log('undo:', type);
   }
   redoAction() {
-    this.drawBoard.redo();
+    const type = this.drawBoard.redo();
+    console.log('redo:', type);
   }
   deleteTargetGraphAction() {
-    this.drawBoard.setDeleteTargetGraphState();
+    this.deleteState = !this.deleteState;
+    this.drawBoard.setDeleteTargetGraphState(true);
   }
 }
 </script>
