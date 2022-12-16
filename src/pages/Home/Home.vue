@@ -2,7 +2,7 @@
  * @Author: Yandong Hu
  * @github: https://github.com/Mad-hu
  * @Date: 2021-08-04 15:35:56
- * @LastEditTime: 2022-02-09 17:34:37
+ * @LastEditTime: 2022-12-16 18:04:12
  * @LastEditors: Yandong Hu
  * @Description:
 -->
@@ -44,6 +44,7 @@ import { Options, Provide, Vue, Watch } from "vue-property-decorator";
 import _ from "lodash";
 import { DrowBoard } from "../../../MHDrawBoard/src/draw-board/draw-board";
 import { DrawGraphType } from "../../../MHDrawBoard/src/draw-board/draw-graph";
+import { DrawBoardState } from "../../services/state.services";
 @Options({
   components: {},
 })
@@ -51,6 +52,11 @@ export default class Home extends Vue {
   drawBoard!: DrowBoard;
 
   deleteState = false;
+  drawBoardState = DrawBoardState;
+  @Watch('drawBoardState.color')
+  boardColorChange(newV: string, oldV: string) {
+    this.drawBoard.setColor(newV);
+  }
   mounted() {
     this.drawCanvas("canv");
   }

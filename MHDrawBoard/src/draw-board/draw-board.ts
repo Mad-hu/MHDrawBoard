@@ -61,7 +61,6 @@ export class DrowBoard {
     );
     this.drawBoard = new fabric.Canvas(element, options);
     this.drawGraph = new DrowGraph();
-    this.drawBoard.zoomToPoint
     // 添加画板间监听
     this.addBoardEvent();
     console.log("创建画板成功");
@@ -74,16 +73,32 @@ export class DrowBoard {
    */
   setDrawingMode(flag: boolean) {
     this.drawBoard.isDrawingMode = flag;
+    if(this.deleteTargetGraphState) {
+        this.deleteTargetGraphState = false;
+    }
   }
   setFreeDraw(flag: boolean) {
+    this.cancleText();
     this.setDrawingMode(flag);
+    this.currentDrawGraphType  = DrawGraphType.Mouse;
+    this.currentDrawGraph = null;
     this.drawBoard.freeDrawingBrush.color = this.color;
     this.drawBoard.freeDrawingBrush.width = this.LineWeight;
   }
   setEnableDraw(flag: boolean) {
     this.enableDraw = flag;
   }
-
+  cancleText() {
+    if(this.currentDrawGraphType == DrawGraphType.Text) {
+        // 没有创建图形，先创建图形，在改变图形
+        if (this.currentDrawGraph) {
+            console.log('清理画板文字');
+            (<fabric.Textbox>this.currentDrawGraph).exitEditing();
+            this.currentDrawGraph = null;
+        }
+    }
+    this.deleteTargetGraphState = false;
+  }
   /**
    * add draw board event
    *
@@ -340,6 +355,7 @@ export class DrowBoard {
     this.drawBoard.setBackgroundImage(image, callback, options);
   }
   setCurrentDrawGraphType(drawGraphType: DrawGraphType) {
+    this.cancleText();
     // 设置当前绘制图形类型
     this.currentDrawGraphType = drawGraphType;
     console.log("设置画板：", drawGraphType);
@@ -399,6 +415,7 @@ export class DrowBoard {
   clear() {
     this.drawBoard.clear();
     this.drawGraphArr = [];
+    this.cancleText();
   }
   undo() {
     if (this.drawBoard._objects.length > 0) {
@@ -407,16 +424,21 @@ export class DrowBoard {
       this.drawGraphArr.push(obj);
       this.drawBoard.renderAll();
     }
+    this.cancleText();
     if (this.drawBoard._objects.length == 0) {
       return false;
     }
     return true;
+  }
+  setColor(color: string) {
+    this.color = color;
   }
   redo() {
     if (this.drawGraphArr.length > 0) {
       this.drawBoard.add(this.drawGraphArr.pop());
       this.drawBoard.renderAll();
     }
+    this.cancleText();
     console.log(this.drawGraphArr);
     if (this.drawGraphArr.length == 0) {
       return false;
@@ -431,6 +453,7 @@ export class DrowBoard {
    * @memberof DrowBoard
    */
   setDeleteTargetGraphState(flag: boolean) {
-    this.deleteTargetGraphState = flag;
+    this.cancleText();
+    this.deleteTargetGraphState = flag == undefined? !this.deleteTargetGraphState: flag;
   }
 }
